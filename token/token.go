@@ -11,7 +11,7 @@ const (
 	ILLEGAL          = "ILLEGAL"
 	EOF              = "EOF"
 	IDENTIFIER       = "IDENTIFIER"
-	INT              = "INT"
+	INTEGER          = "INT"
 	ASSIGNMENT       = "="
 	PLUS             = "+"
 	COMMA            = ","
@@ -21,5 +21,5 @@ const (
 	OPENBRACE        = "{"
 	CLOSEBRACE       = "}"
 	FUNCTION         = "FUNCTION"
-	VARIABLE         = "LET"
+	LET              = "LET"
 )
