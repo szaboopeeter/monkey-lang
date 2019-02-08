@@ -28,6 +28,8 @@ func (l *Lexer) readChar() {
 func (l *Lexer) NextToken() token.Token {
 	var tok token.Token
 
+	l.skipWhitespace()
+
 	switch l.currentChar {
 	case '=':
 		tok = newToken(token.ASSIGNMENT, l.currentChar)
@@ -53,6 +55,10 @@ func (l *Lexer) NextToken() token.Token {
 			tok.Literal = l.readIdentifier()
 			tok.Type = token.LookupIdentifier(tok.Literal)
 			return tok
+		} else if isDigit(l.currentChar) {
+			tok.Type = token.INTEGER
+			tok.Literal = l.readNumber()
+			return tok
 		} else {
 			tok = newToken(token.ILLEGAL, l.currentChar)
 		}
@@ -60,6 +66,13 @@ func (l *Lexer) NextToken() token.Token {
 
 	l.readChar()
 	return tok
+}
+
+func (l *Lexer) skipWhitespace() {
+	for l.currentChar == ' ' || l.currentChar == '\t' ||
+		l.currentChar == '\n' || l.currentChar == '\r' {
+		l.readChar()
+	}
 }
 
 func newToken(tokenType token.TokenType, character byte) token.Token {
@@ -75,6 +88,20 @@ func (l *Lexer) readIdentifier() string {
 	return l.input[position:l.position]
 }
 
+func (l *Lexer) readNumber() string {
+	position := l.position
+
+	for isDigit(l.currentChar) {
+		l.readChar()
+	}
+
+	return l.input[position:l.position]
+}
+
 func isLetter(ch byte) bool {
 	return 'a' <= ch && ch <= 'z' || 'A' <= ch && ch <= 'Z' || ch == '_'
+}
+
+func isDigit(ch byte) bool {
+	return '0' <= ch && ch <= '9'
 }

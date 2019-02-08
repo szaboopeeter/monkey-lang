@@ -8,7 +8,7 @@ import (
 func TestNextToken(t *testing.T) {
 	input := `let five = 5;
 	let ten = 10;
-	let add = fn(x, z) {
+	let add = fn(x, y) {
 		x + y;
 	};
 	
@@ -21,7 +21,7 @@ func TestNextToken(t *testing.T) {
 		{token.LET, "let"},
 		{token.IDENTIFIER, "five"},
 		{token.ASSIGNMENT, "="},
-		{token.INTEGER, "int"},
+		{token.INTEGER, "5"},
 		{token.SEMICOLON, ";"},
 		{token.LET, "let"},
 		{token.IDENTIFIER, "ten"},
