@@ -8,25 +8,48 @@ type Token struct {
 }
 
 const (
-	ILLEGAL          = "ILLEGAL"
-	EOF              = "EOF"
-	IDENTIFIER       = "IDENTIFIER"
-	INTEGER          = "INT"
-	ASSIGNMENT       = "="
-	PLUS             = "+"
+	ILLEGAL = "ILLEGAL"
+	EOF     = "EOF"
+
+	IDENTIFIER = "IDENTIFIER"
+	INTEGER    = "INT"
+
+	ASSIGNMENT  = "="
+	PLUS        = "+"
+	MINUS       = "-"
+	BANG        = "!"
+	ASTERISK    = "*"
+	SLASH       = "/"
+	LESSTHAN    = "<"
+	GREATERTHAN = ">"
+
 	COMMA            = ","
 	SEMICOLON        = ";"
 	OPENPARENTHESIS  = "("
 	CLOSEPARENTHESIS = ")"
 	OPENBRACE        = "{"
 	CLOSEBRACE       = "}"
-	FUNCTION         = "FUNCTION"
-	LET              = "LET"
+
+	EQUAL    = "=="
+	NOTEQUAL = "!="
+
+	FUNCTION = "FUNCTION"
+	LET      = "LET"
+	IF       = "IF"
+	ELSE     = "ELSE"
+	RETURN   = "RETURN"
+	TRUE     = "TRUE"
+	FALSE    = "FALSE"
 )
 
 var keywords = map[string]TokenType{
-	"fn":  FUNCTION,
-	"let": LET,
+	"fn":     FUNCTION,
+	"let":    LET,
+	"true":   TRUE,
+	"false":  FALSE,
+	"if":     IF,
+	"else":   ELSE,
+	"return": RETURN,
 }
 
 func LookupIdentifier(identifier string) TokenType {
