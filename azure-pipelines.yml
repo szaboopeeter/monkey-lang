@@ -55,6 +55,7 @@ steps:
   inputs:
     testRunner: JUnit
     testResultsFiles: $(System.DefaultWorkingDirectory)/**/report.xml
+    failTaskOnFailedTests: true
   displayName: 'Publish test results'
 
 - task: PublishCodeCoverageResults@1
