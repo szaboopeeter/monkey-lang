@@ -3,6 +3,7 @@ package parser
 import (
 	"monkey-lang/ast"
 	"monkey-lang/lexer"
+	"strconv"
 	"testing"
 )
 
@@ -119,7 +120,7 @@ func TestIdentifierExpression(t *testing.T) {
 	checkParserErrors(t, parser)
 
 	if len(program.Statements) != 1 {
-		t.Fatalf("program has not enough statements. got=%d",
+		t.Fatalf("program doesn't have exactly one statement. got=%d",
 			len(program.Statements))
 	}
 	stmt, ok := program.Statements[0].(*ast.ExpressionStatement)
@@ -140,5 +141,38 @@ func TestIdentifierExpression(t *testing.T) {
 
 	if ident.TokenLiteral() != expectedValue {
 		t.Errorf("ident.TokenLiteral not %s. got=%s", expectedValue, ident.TokenLiteral())
+	}
+}
+
+func TestIntegerLiteralExpression(t *testing.T) {
+	input := "5;"
+
+	lexer := lexer.New(input)
+	parser := New(lexer)
+	program := parser.ParseProgram()
+	checkParserErrors(t, parser)
+
+	if len(program.Statements) != 1 {
+		t.Fatalf("program doesn't have exactly one statement. got=%d", program.Statements)
+	}
+
+	stmt, ok := program.Statements[0].(*ast.ExpressionStatement)
+	if !ok {
+		t.Fatalf("program.Statements[0] is not an ast.ExpressionStatement, got=%T",
+			program.Statements[0])
+	}
+
+	literal, ok := stmt.Expression.(*ast.IntegerLiteral)
+	if !ok {
+		t.Fatalf("Expression not *ast.IntegerLiteral. got=%T", stmt.Expression)
+	}
+
+	const expectedValue = 5
+	if literal.Value != expectedValue {
+		t.Errorf("literal.Value not %d, got=%d", expectedValue, literal.Value)
+	}
+
+	if literal.TokenLiteral() != strconv.Itoa(expectedValue) {
+		t.Errorf("literal.TokenLiteral not %s. got=%s", strconv.Itoa(expectedValue), literal.TokenLiteral())
 	}
 }
