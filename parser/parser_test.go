@@ -186,7 +186,7 @@ func TestParsingPrefixExpressions(t *testing.T) {
 	}{
 		{"!5", "!", 5},
 		{"-15", "-", 15},
-		{"!foobar;", "!", "foobar"},
+		{"-foobar;", "!", "foobar"},
 		{"-foobar;", "-", "foobar"},
 		{"!true;", "!", true},
 		{"!false;", "!", false},
