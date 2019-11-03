@@ -37,6 +37,9 @@ func New(l *lexer.Lexer) *Parser {
 	p.registerPrefix(token.MINUS, p.parsePrefixExpression)
 	p.registerPrefix(token.TRUE, p.parseBoolean)
 	p.registerPrefix(token.FALSE, p.parseBoolean)
+	p.registerPrefix(token.OPENPARENTHESIS, p.parseGroupedExpression)
+	p.registerPrefix(token.IF, p.parseIfExpression)
+	p.registerPrefix(token.FUNCTION, p.parseFunctionExpression)
 
 	p.infixParseFns = make(map[token.TokenType]infixParseFn)
 	p.registerInfix(token.PLUS, p.parseInfixExpression)
@@ -47,6 +50,7 @@ func New(l *lexer.Lexer) *Parser {
 	p.registerInfix(token.NOTEQUAL, p.parseInfixExpression)
 	p.registerInfix(token.GREATERTHAN, p.parseInfixExpression)
 	p.registerInfix(token.LESSTHAN, p.parseInfixExpression)
+	p.registerInfix(token.OPENPARENTHESIS, p.parseCallExpression)
 
 	// Set currentToken and peekToken by reading twice
 	p.nextToken()
@@ -143,6 +147,112 @@ func (p *Parser) parseBoolean() ast.Expression {
 	return &ast.Boolean{Token: p.currentToken, Value: p.currentTokenIs(token.TRUE)}
 }
 
+func (p *Parser) parseGroupedExpression() ast.Expression {
+	p.nextToken()
+
+	expression := p.parseExpression(LOWEST)
+
+	if !p.expectPeek(token.CLOSEPARENTHESIS) {
+		return nil
+	}
+
+	return expression
+}
+
+func (p *Parser) parseIfExpression() ast.Expression {
+	expression := &ast.IfExpression{Token: p.currentToken}
+
+	if !p.expectPeek(token.OPENPARENTHESIS) {
+		return nil
+	}
+
+	p.nextToken()
+	expression.Condition = p.parseExpression(LOWEST)
+
+	if !p.expectPeek(token.CLOSEPARENTHESIS) {
+		return nil
+	}
+
+	if !p.expectPeek(token.OPENBRACE) {
+		return nil
+	}
+
+	expression.Consequence = p.parseBlockStatement()
+
+	if p.peekTokenIs(token.ELSE) {
+		p.nextToken()
+
+		if !p.expectPeek(token.OPENBRACE) {
+			return nil
+		}
+
+		expression.Alternative = p.parseBlockStatement()
+	}
+
+	return expression
+}
+
+func (p *Parser) parseFunctionExpression() ast.Expression {
+	expression := &ast.FunctionExpression{Token: p.currentToken}
+
+	if !p.expectPeek(token.OPENPARENTHESIS) {
+		return nil
+	}
+
+	expression.Parameters = p.parseFunctionParameters()
+
+	if !p.expectPeek(token.OPENBRACE) {
+		return nil
+	}
+
+	expression.Body = p.parseBlockStatement()
+
+	return expression
+}
+
+func (p *Parser) parseFunctionParameters() []*ast.Identifier {
+	identifiers := []*ast.Identifier{}
+
+	p.nextToken()
+
+	if p.currentTokenIs(token.CLOSEPARENTHESIS) {
+		return identifiers
+	}
+
+	identifier := &ast.Identifier{Token: p.currentToken, Value: p.currentToken.Literal}
+	identifiers = append(identifiers, identifier)
+
+	for p.peekTokenIs(token.COMMA) {
+		p.nextToken()
+		p.nextToken()
+		identifier := &ast.Identifier{Token: p.currentToken, Value: p.currentToken.Literal}
+		identifiers = append(identifiers, identifier)
+	}
+
+	if !p.expectPeek(token.CLOSEPARENTHESIS) {
+		return nil
+	}
+
+	return identifiers
+}
+
+func (p *Parser) parseBlockStatement() *ast.BlockStatement {
+	block := &ast.BlockStatement{Token: p.currentToken}
+	block.Statements = []ast.Statement{}
+
+	p.nextToken()
+
+	for !p.currentTokenIs(token.CLOSEBRACE) && !p.currentTokenIs(token.EOF) {
+		statement := p.parseStatement()
+		if statement != nil {
+			block.Statements = append(block.Statements, statement)
+		}
+		p.nextToken()
+	}
+
+	return block
+}
+
 func (p *Parser) parsePrefixExpression() ast.Expression {
 	expression := &ast.PrefixExpression{
 		Token:    p.currentToken,
@@ -168,6 +278,36 @@ func (p *Parser) parseInfixExpression(left ast.Expression) ast.Expression {
 	expression.Right = p.parseExpression(precedence)
 
 	return expression
+}
+
+func (p *Parser) parseCallExpression(function ast.Expression) ast.Expression {
+	expression := &ast.CallExpression{Token: p.currentToken, Function: function}
+	expression.Arguments = p.parseCallArguments()
+	return expression
+}
+
+func (p *Parser) parseCallArguments() []ast.Expression {
+	args := []ast.Expression{}
+
+	if p.peekTokenIs(token.CLOSEPARENTHESIS) {
+		p.nextToken()
+		return args
+	}
+
+	p.nextToken()
+	args = append(args, p.parseExpression(LOWEST))
+
+	for p.peekTokenIs(token.COMMA) {
+		p.nextToken()
+		p.nextToken()
+		args = append(args, p.parseExpression(LOWEST))
+	}
+
+	if !p.expectPeek(token.CLOSEPARENTHESIS) {
+		return nil
+	}
+
+	return args
 }
 
 func (p *Parser) currentTokenIs(t token.TokenType) bool {
@@ -271,12 +411,13 @@ const (
 )
 
 var precedences = map[token.TokenType]int{
-	token.EQUAL:       EQUALS,
-	token.NOTEQUAL:    EQUALS,
-	token.LESSTHAN:    LESSGREATER,
-	token.GREATERTHAN: LESSGREATER,
-	token.PLUS:        SUM,
-	token.MINUS:       SUM,
-	token.SLASH:       PRODUCT,
-	token.ASTERISK:    PRODUCT,
+	token.EQUAL:           EQUALS,
+	token.NOTEQUAL:        EQUALS,
+	token.LESSTHAN:        LESSGREATER,
+	token.GREATERTHAN:     LESSGREATER,
+	token.PLUS:            SUM,
+	token.MINUS:           SUM,
+	token.SLASH:           PRODUCT,
+	token.ASTERISK:        PRODUCT,
+	token.OPENPARENTHESIS: CALL,
 }

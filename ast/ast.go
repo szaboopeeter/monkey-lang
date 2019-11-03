@@ -3,6 +3,7 @@ package ast
 import (
 	"bytes"
 	"monkey-lang/token"
+	"strings"
 )
 
 type Node interface {
@@ -170,3 +171,94 @@ type Boolean struct {
 func (b *Boolean) expressionNode()      {}
 func (b *Boolean) TokenLiteral() string { return b.Token.Literal }
 func (b *Boolean) String() string       { return b.Token.Literal }
+
+type IfExpression struct {
+	Token       token.Token
+	Condition   Expression
+	Consequence *BlockStatement
+	Alternative *BlockStatement
+}
+
+func (ie *IfExpression) expressionNode()      {}
+func (ie *IfExpression) TokenLiteral() string { return ie.Token.Literal }
+func (ie *IfExpression) String() string {
+	var out bytes.Buffer
+
+	out.WriteString("if")
+	out.WriteString(ie.Condition.String())
+	out.WriteString(" ")
+	out.WriteString(ie.Consequence.String())
+
+	if ie.Alternative != nil {
+		out.WriteString("else ")
+		out.WriteString(ie.Alternative.String())
+	}
+
+	return out.String()
+}
+
+type BlockStatement struct {
+	Token      token.Token // the { token
+	Statements []Statement
+}
+
+func (bs *BlockStatement) expressionNode()      {}
+func (bs *BlockStatement) TokenLiteral() string { return bs.Token.Literal }
+func (bs *BlockStatement) String() string {
+	var out bytes.Buffer
+
+	for _, statement := range bs.Statements {
+		out.WriteString(statement.String())
+	}
+
+	return out.String()
+}
+
+type FunctionExpression struct {
+	Token      token.Token // the 'fn' token
+	Parameters []*Identifier
+	Body       *BlockStatement
+}
+
+func (fe *FunctionExpression) expressionNode()      {}
+func (fe *FunctionExpression) TokenLiteral() string { return fe.Token.Literal }
+func (fe *FunctionExpression) String() string {
+	var out bytes.Buffer
+
+	parameters := []string{}
+	for _, parameter := range fe.Parameters {
+		parameters = append(parameters, parameter.String())
+	}
+
+	out.WriteString(fe.TokenLiteral())
+	out.WriteString("(")
+	out.WriteString(strings.Join(parameters, ", "))
+	out.WriteString(")")
+	out.WriteString(fe.Body.String())
+
+	return out.String()
+}
+
+type CallExpression struct {
+	Token     token.Token // the ( token
+	Function  Expression
+	Arguments []Expression
+}
+
+func (ce *CallExpression) expressionNode()      {}
+func (ce *CallExpression) TokenLiteral() string { return ce.Token.Literal }
+func (ce *CallExpression) String() string {
+	var out bytes.Buffer
+
+	arguments := []string{}
+	for _, argument := range ce.Arguments {
+		arguments = append(arguments, argument.String())
+	}
+
+	out.WriteString(ce.Function.String())
+	out.WriteString("(")
+	out.WriteString(strings.Join(arguments, ", "))
+	out.WriteString(")")
+
+	return out.String()
+}
