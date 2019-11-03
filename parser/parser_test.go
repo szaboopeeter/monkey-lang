@@ -396,6 +396,110 @@ func TestBooleanExpression(t *testing.T) {
 	}
 }
 
+func TestIfExpression(t *testing.T) {
+	input := `if (x < y) { x }`
+
+	lexer := lexer.New(input)
+	parser := New(lexer)
+	program := parser.ParseProgram()
+	checkParserErrors(t, parser)
+
+	if len(program.Statements) != 1 {
+		t.Fatalf("program.Statements does not contain exactly 1 statement. got=%d\n", len(program.Statements))
+	}
+
+	statement, ok := program.Statements[0].(*ast.ExpressionStatement)
+	if !ok {
+		t.Fatalf("program.Statements[0] is not ast.ExpressionStatement. got=%T",
+			program.Statements[0])
+	}
+
+	expression, ok := statement.Expression.(*ast.IfExpression)
+	if !ok {
+		t.Fatalf("statement.Expression is not ast.IfExpression. got=%T", statement.Expression)
+	}
+
+	if !testInfixExpression(t, expression.Condition, "x", "<", "y") {
+		return
+	}
+
+	if len(expression.Consequence.Statements) != 1 {
+		t.Fatalf("Consequence.Statements does not contain exactly 1 statement. got=%d\n", len(program.Statements))
+	}
+
+	consequence, ok := expression.Consequence.Statements[0].(*ast.ExpressionStatement)
+	if !ok {
+		t.Fatalf("Consequence.Statements[0] is not ast.ExpressionStatement. got=%T", expression.Consequence.Statements[0])
+	}
+
+	if !testIdentifier(t, consequence.Expression, "x") {
+		return
+	}
+
+	if expression.Alternative != nil {
+		t.Errorf("expression.Atlernative.Statements was not nil. got=%+v", expression.Alternative)
+	}
+}
+
+func TestIfElseExpression(t *testing.T) {
+	input := `if (x < y) { x } else { y }`
+
+	lexer := lexer.New(input)
+	parser := New(lexer)
+	program := parser.ParseProgram()
+	checkParserErrors(t, parser)
+
+	if len(program.Statements) != 1 {
+		t.Fatalf("program.Statements does not contain 1 statement. got=%d\n",
+			len(program.Statements))
+	}
+
+	statement, ok := program.Statements[0].(*ast.ExpressionStatement)
+	if !ok {
+		t.Fatalf("program.Statements[0] is not ast.ExpressionStatement. got=%T",
+			program.Statements[0])
+	}
+
+	expression, ok := statement.Expression.(*ast.IfExpression)
+	if !ok {
+		t.Fatalf("statement.Expression is not ast.IfExpression. got=%T", statement.Expression)
+	}
+
+	if !testInfixExpression(t, expression.Condition, "x", "<", "y") {
+		return
+	}
+
+	if len(expression.Consequence.Statements) != 1 {
+		t.Errorf("consequence is not 1 statement. got=%d\n",
+			len(expression.Consequence.Statements))
+	}
+
+	consequence, ok := expression.Consequence.Statements[0].(*ast.ExpressionStatement)
+	if !ok {
+		t.Fatalf("consequence.Statements[0] is not ast.ExpressionStatement. got=%T",
+			expression.Consequence.Statements[0])
+	}
+
+	if !testIdentifier(t, consequence.Expression, "x") {
+		return
+	}
+
+	if len(expression.Alternative.Statements) != 1 {
+		t.Errorf("expression.Alternative.Statements does not contain 1 statement. got=%d\n",
+			len(expression.Alternative.Statements))
+	}
+
+	alternative, ok := expression.Alternative.Statements[0].(*ast.ExpressionStatement)
+	if !ok {
+		t.Fatalf("alternative.Statements[0] is not ast.ExpressionStatement. got=%T",
+			expression.Alternative.Statements[0])
+	}
+
+	if !testIdentifier(t, alternative.Expression, "y") {
+		return
+	}
+}
+
 func testIntegerLiteral(t *testing.T, integerLiteral ast.Expression, value int64) bool {
 	integer, ok := integerLiteral.(*ast.IntegerLiteral)
 	if !ok {
