@@ -50,6 +50,7 @@ func New(l *lexer.Lexer) *Parser {
 	p.registerInfix(token.NOTEQUAL, p.parseInfixExpression)
 	p.registerInfix(token.GREATERTHAN, p.parseInfixExpression)
 	p.registerInfix(token.LESSTHAN, p.parseInfixExpression)
+	p.registerInfix(token.OPENPARENTHESIS, p.parseCallExpression)
 
 	// Set currentToken and peekToken by reading twice
 	p.nextToken()
@@ -279,6 +280,36 @@ func (p *Parser) parseInfixExpression(left ast.Expression) ast.Expression {
 	return expression
 }
 
+func (p *Parser) parseCallExpression(function ast.Expression) ast.Expression {
+	expression := &ast.CallExpression{Token: p.currentToken, Function: function}
+	expression.Arguments = p.parseCallArguments()
+	return expression
+}
+
+func (p *Parser) parseCallArguments() []ast.Expression {
+	args := []ast.Expression{}
+
+	if p.peekTokenIs(token.CLOSEPARENTHESIS) {
+		p.nextToken()
+		return args
+	}
+
+	p.nextToken()
+	args = append(args, p.parseExpression(LOWEST))
+
+	for p.peekTokenIs(token.COMMA) {
+		p.nextToken()
+		p.nextToken()
+		args = append(args, p.parseExpression(LOWEST))
+	}
+
+	if !p.expectPeek(token.CLOSEPARENTHESIS) {
+		return nil
+	}
+
+	return args
+}
+
 func (p *Parser) currentTokenIs(t token.TokenType) bool {
 	return p.currentToken.Type == t
 }
@@ -380,12 +411,13 @@ const (
 )
 
 var precedences = map[token.TokenType]int{
-	token.EQUAL:       EQUALS,
-	token.NOTEQUAL:    EQUALS,
-	token.LESSTHAN:    LESSGREATER,
-	token.GREATERTHAN: LESSGREATER,
-	token.PLUS:        SUM,
-	token.MINUS:       SUM,
-	token.SLASH:       PRODUCT,
-	token.ASTERISK:    PRODUCT,
+	token.EQUAL:           EQUALS,
+	token.NOTEQUAL:        EQUALS,
+	token.LESSTHAN:        LESSGREATER,
+	token.GREATERTHAN:     LESSGREATER,
+	token.PLUS:            SUM,
+	token.MINUS:           SUM,
+	token.SLASH:           PRODUCT,
+	token.ASTERISK:        PRODUCT,
+	token.OPENPARENTHESIS: CALL,
 }
