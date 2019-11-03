@@ -91,37 +91,41 @@ func (p *Parser) parseStatement() ast.Statement {
 }
 
 func (p *Parser) parseLetStatement() *ast.LetStatement {
-	stmt := &ast.LetStatement{Token: p.currentToken}
+	statement := &ast.LetStatement{Token: p.currentToken}
 
 	if !p.expectPeek(token.IDENTIFIER) {
 		return nil
 	}
 
-	stmt.Name = &ast.Identifier{Token: p.currentToken, Value: p.currentToken.Literal}
+	statement.Name = &ast.Identifier{Token: p.currentToken, Value: p.currentToken.Literal}
 
 	if !p.expectPeek(token.ASSIGNMENT) {
 		return nil
 	}
 
-	// TODO
-	for !p.currentTokenIs(token.SEMICOLON) {
+	p.nextToken()
+
+	statement.Value = p.parseExpression(LOWEST)
+
+	for p.peekTokenIs(token.SEMICOLON) {
 		p.nextToken()
 	}
 
-	return stmt
+	return statement
 }
 
 func (p *Parser) parseReturnStatement() *ast.ReturnStatement {
-	stmt := &ast.ReturnStatement{Token: p.currentToken}
+	statement := &ast.ReturnStatement{Token: p.currentToken}
 
 	p.nextToken()
 
-	// TODO: skipping until semicolon
-	for !p.currentTokenIs(token.SEMICOLON) {
+	statement.ReturnValue = p.parseExpression(LOWEST)
+
+	for p.peekTokenIs(token.SEMICOLON) {
 		p.nextToken()
 	}
 
-	return stmt
+	return statement
 }
 
 func (p *Parser) parseIdentifier() ast.Expression {
