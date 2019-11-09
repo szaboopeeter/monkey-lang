@@ -34,6 +34,7 @@ func evalStatements(statements []ast.Statement) object.Object {
 }
 
 var (
+	Null  = &object.Null{}
 	TRUE  = &object.Boolean{Value: true}
 	FALSE = &object.Boolean{Value: false}
 )
