@@ -210,6 +210,30 @@ func TestLetStatements(t *testing.T) {
 	}
 }
 
+func TestFunctionObjet(t *testing.T) {
+	input := "fn(x) { x + 2; }"
+
+	evaluated := testEval(input)
+	function, ok := evaluated.(*object.Function)
+	if !ok {
+		t.Fatalf("object is not a Function. got=%T (%+v)", evaluated, evaluated)
+	}
+
+	if len(function.Parameters) != 1 {
+		t.Fatalf("function has wrong parameters. Parameters=%v", function.Parameters)
+	}
+
+	if function.Parameters[0].String() != "x" {
+		t.Fatalf("parameter is not 'x'. Got=%q", function.Parameters[0])
+	}
+
+	expectedBody := "(x + 2)"
+
+	if function.Body.String() != expectedBody {
+		t.Fatalf("body is not %q. got=%q", expectedBody, function.Body.String())
+	}
+}
+
 func testEval(input string) object.Object {
 	lexer := lexer.New(input)
 	parser := parser.New(lexer)
