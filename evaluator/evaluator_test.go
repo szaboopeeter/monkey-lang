@@ -358,6 +358,7 @@ func TestBuiltinFunctions(t *testing.T) {
 		{`rest([])`, nil},
 		{`push([], 1)`, []int{1}},
 		{`push(1, 1)`, "Invalid argument passed to `push()`. Expected=ARRAY, got=INTEGER"},
+		{`puts("Hello", "world")`, nil},
 	}
 
 	for _, tt := range tests {
