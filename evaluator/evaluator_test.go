@@ -343,6 +343,18 @@ func TestBuiltinFunctions(t *testing.T) {
 		{`len("hello world")`, 11},
 		{`len(1)`, "Invalid argument passed to `len()`. Got=INTEGER"},
 		{`len("one", "two")`, "Invalid amount of arguments. Expected=1, got=2"},
+		{`len([1, 2, 3])`, 3},
+		{`len([])`, 0},
+		{`first([1, 2, 3])`, 1},
+		{`first([])`, nil},
+		{`first(1)`, "Invalid argument passed to `first()`. Expected=ARRAY, got=INTEGER"},
+		{`last([1, 2, 3])`, 3},
+		{`last([])`, nil},
+		{`last(1)`, "Invalid argument passed to `last()`. Expected=ARRAY, got=INTEGER"},
+		{`rest([1, 2, 3])`, []int{2, 3}},
+		{`rest([])`, nil},
+		{`push([], 1)`, []int{1}},
+		{`push(1, 1)`, "Invalid argument passed to `push()`. Expected=ARRAY, got=INTEGER"},
 	}
 
 	for _, tt := range tests {
@@ -359,6 +371,22 @@ func TestBuiltinFunctions(t *testing.T) {
 			}
 			if errObj.Message != expected {
 				t.Errorf("Wrong error message. Expected=%q, got=%q", expected, errObj.Message)
+			}
+		case []int:
+			array, ok := evaluated.(*object.Array)
+			if !ok {
+				t.Errorf("object is not an Array. Got=%T (%+v)", evaluated, evaluated)
+				continue
+			}
+
+			if len(array.Elements) != len(expected) {
+				t.Errorf("Invalid amount of arguments. Expected=%d, got=%d",
+					len(expected), len(array.Elements))
+				continue
+			}
+
+			for i, expectedElem := range expected {
+				testIntegerObject(t, array.Elements[i], int64(expectedElem))
 			}
 		}
 	}
