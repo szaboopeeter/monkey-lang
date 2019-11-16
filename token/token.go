@@ -25,6 +25,7 @@ const (
 	GREATERTHAN = ">"
 
 	COMMA            = ","
+	COLON            = ":"
 	SEMICOLON        = ";"
 	OPENPARENTHESIS  = "("
 	CLOSEPARENTHESIS = ")"
