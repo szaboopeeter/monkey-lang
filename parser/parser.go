@@ -53,6 +53,7 @@ func New(l *lexer.Lexer) *Parser {
 	p.registerInfix(token.GREATERTHAN, p.parseInfixExpression)
 	p.registerInfix(token.LESSTHAN, p.parseInfixExpression)
 	p.registerInfix(token.OPENPARENTHESIS, p.parseCallExpression)
+	p.registerInfix(token.OPENBRACKET, p.parseIndexExpression)
 
 	// Set currentToken and peekToken by reading twice
 	p.nextToken()
@@ -303,6 +304,19 @@ func (p *Parser) parseCallExpression(function ast.Expression) ast.Expression {
 	return expression
 }
 
+func (p *Parser) parseIndexExpression(left ast.Expression) ast.Expression {
+	expression := &ast.IndexExpression{Token: p.currentToken, Left: left}
+
+	p.nextToken()
+	expression.Index = p.parseExpression(LOWEST)
+
+	if !p.expectPeek(token.CLOSEBRACKET) {
+		return nil
+	}
+
+	return expression
+}
+
 func (p *Parser) currentTokenIs(t token.TokenType) bool {
 	return p.currentToken.Type == t
 }
@@ -425,6 +439,7 @@ const (
 	PRODUCT     // *
 	PREFIX      //-X or !X
 	CALL        // myFuync(X)
+	INDEX       // array[index]
 )
 
 var precedences = map[token.TokenType]int{
@@ -437,4 +452,5 @@ var precedences = map[token.TokenType]int{
 	token.SLASH:           PRODUCT,
 	token.ASTERISK:        PRODUCT,
 	token.OPENPARENTHESIS: CALL,
+	token.OPENBRACKET:     INDEX,
 }
