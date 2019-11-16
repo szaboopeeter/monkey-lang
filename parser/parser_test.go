@@ -699,6 +699,48 @@ func TestStringLiteralExpression(t *testing.T) {
 	}
 }
 
+func TestParsingArrayLiterals(t *testing.T) {
+	input := "[1, 2*2,3+3]"
+
+	lexer := lexer.New(input)
+	parser := New(lexer)
+	program := parser.ParseProgram()
+	checkParserErrors(t, parser)
+
+	statement := program.Statements[0].(*ast.ExpressionStatement)
+	array, ok := statement.Expression.(*ast.ArrayLiteral)
+	if !ok {
+		t.Fatalf("expression is not *ast.ArrayLiteral. got=%T", statement.Expression)
+	}
+
+	if len(array.Elements) != 3 {
+		t.Errorf("`len(array.Elements)` is not 3. Got=%d", len(array.Elements))
+	}
+
+	testIntegerLiteral(t, array.Elements[0], 1)
+	testInfixExpression(t, array.Elements[1], 2, "*", 2)
+	testInfixExpression(t, array.Elements[2], 3, "+", 3)
+}
+
+func TestParsingEmptyArrayLiterals(t *testing.T) {
+	input := "[]"
+
+	l := lexer.New(input)
+	p := New(l)
+	program := p.ParseProgram()
+	checkParserErrors(t, p)
+
+	stmt, ok := program.Statements[0].(*ast.ExpressionStatement)
+	array, ok := stmt.Expression.(*ast.ArrayLiteral)
+	if !ok {
+		t.Fatalf("exp not ast.ArrayLiteral. got=%T", stmt.Expression)
+	}
+
+	if len(array.Elements) != 0 {
+		t.Errorf("len(array.Elements) not 0. got=%d", len(array.Elements))
+	}
+}
+
 func testIntegerLiteral(t *testing.T, integerLiteral ast.Expression, value int64) bool {
 	integer, ok := integerLiteral.(*ast.IntegerLiteral)
 	if !ok {
