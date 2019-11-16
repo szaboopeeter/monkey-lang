@@ -30,6 +30,8 @@ const (
 	CLOSEPARENTHESIS = ")"
 	OPENBRACE        = "{"
 	CLOSEBRACE       = "}"
+	OPENBRACKET      = "["
+	CLOSEBRACKET     = "]"
 
 	EQUAL    = "=="
 	NOTEQUAL = "!="
