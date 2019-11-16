@@ -59,7 +59,7 @@ func (e *Error) Type() ObjectType { return ERROR_OBJ }
 type Function struct {
 	Parameters  []*ast.Identifier
 	Body        *ast.BlockStatement
-	Environment Environment
+	Environment *Environment
 }
 
 func (f *Function) Type() ObjectType { return FUNCTION_OBJ }
