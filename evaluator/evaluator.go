@@ -10,7 +10,7 @@ func Eval(node ast.Node, environment *object.Environment) object.Object {
 	switch node := node.(type) {
 	// Statements
 	case *ast.Program:
-		return evalProgram(node.Statements, environment)
+		return evalProgram(node, environment)
 	case *ast.ExpressionStatement:
 		return Eval(node.Expression, environment)
 	case *ast.BlockStatement:
@@ -53,6 +53,21 @@ func Eval(node ast.Node, environment *object.Environment) object.Object {
 		return evalIfExpression(node, environment)
 	case *ast.Identifier:
 		return evalIdentifier(node, environment)
+	case *ast.FunctionExpression:
+		parameters := node.Parameters
+		body := node.Body
+		return &object.Function{Parameters: parameters, Body: body, Environment: environment}
+	case *ast.CallExpression:
+		function := Eval(node.Function, environment)
+		if isError(function) {
+			return function
+		}
+		args := evalExpressions(node.Arguments, environment)
+		if len(args) == 1 && isError(args[0]) {
+			return args[0]
+		}
+
+		return applyFunction(function, args)
 	}
 
 	return nil
@@ -64,10 +79,10 @@ var (
 	FALSE = &object.Boolean{Value: false}
 )
 
-func evalProgram(statements []ast.Statement, environment *object.Environment) object.Object {
+func evalProgram(program *ast.Program, environment *object.Environment) object.Object {
 	var result object.Object
 
-	for _, statement := range statements {
+	for _, statement := range program.Statements {
 		result = Eval(statement, environment)
 
 		switch result := result.(type) {
@@ -203,6 +218,20 @@ func evalIdentifier(node *ast.Identifier, environment *object.Environment) objec
 	return value
 }
 
+func evalExpressions(expressions []ast.Expression, environment *object.Environment) []object.Object {
+	var result []object.Object
+
+	for _, expression := range expressions {
+		evaluated := Eval(expression, environment)
+		if isError(evaluated) {
+			return []object.Object{evaluated}
+		}
+		result = append(result, evaluated)
+	}
+
+	return result
+}
+
 func isTruthy(obj object.Object) bool {
 	switch obj {
 	case NULL:
@@ -225,4 +254,33 @@ func isError(obj object.Object) bool {
 		return obj.Type() == object.ERROR_OBJ
 	}
 	return false
+}
+
+func applyFunction(fn object.Object, args []object.Object) object.Object {
+	function, ok := fn.(*object.Function)
+	if !ok {
+		return newError("Not a function: %s", function.Type())
+	}
+
+	extendedEnv := extendFunctionEnvironment(function, args)
+	evaluated := Eval(function.Body, extendedEnv)
+	return unwrapReturnValue(evaluated)
+}
+
+func extendFunctionEnvironment(fn *object.Function, args []object.Object) *object.Environment {
+	environment := object.NewEnclosedEnvironment(fn.Environment)
+
+	for paramIndex, param := range fn.Parameters {
+		environment.Set(param.Value, args[paramIndex])
+	}
+
+	return environment
+}
+
+func unwrapReturnValue(obj object.Object) object.Object {
+	if returnValue, ok := obj.(*object.ReturnValue); ok {
+		return returnValue.Value
+	}
+
+	return obj
 }
