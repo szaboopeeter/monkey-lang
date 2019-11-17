@@ -1,11 +1,34 @@
 package code
 
 import (
+	"bytes"
 	"encoding/binary"
 	"fmt"
 )
 
 type Instructions []byte
+
+func (instructions Instructions) String() string {
+	var out bytes.Buffer
+
+	i := 0
+	for i < len(instructions) {
+		definition, err := Lookup(instructions[i])
+		if err != nil {
+			fmt.Fprintf(&out, "ERROR: %s\n", err)
+			continue
+		}
+
+		operands, read := ReadOperands(definition, instructions[i+1:])
+
+		fmt.Fprintf(&out, "%04d %s\n", i, instructions.fmtInstruction(definition, operands))
+
+		i += 1 + read
+	}
+
+	return out.String()
+}
+
 type Opcode byte
 
 const (
@@ -55,4 +78,39 @@ func Make(op Opcode, operands ...int) []byte {
 	}
 
 	return instruction
+}
+
+func ReadOperands(definition *Definition, instructions Instructions) ([]int, int) {
+	operands := make([]int, len(definition.OperandWidths))
+	offset := 0
+
+	for i, width := range definition.OperandWidths {
+		switch width {
+		case 2:
+			operands[i] = int(ReadUint16(instructions[offset:]))
+		}
+
+		offset += width
+	}
+
+	return operands, offset
+}
+
+func ReadUint16(Instructions Instructions) uint16 {
+	return binary.BigEndian.Uint16(Instructions)
+}
+
+func (ins Instructions) fmtInstruction(definition *Definition, operands []int) string {
+	operandCount := len(definition.OperandWidths)
+
+	if len(operands) != operandCount {
+		return fmt.Sprintf("ERROR: oparand length %d does not match the definition %d\n", len(operands), operandCount)
+	}
+
+	switch operandCount {
+	case 1:
+		return fmt.Sprintf("%s %d", definition.Name, operands[0])
+	}
+
+	return fmt.Sprintf("ERROR: number of operands for %s\n", definition.Name)
 }
