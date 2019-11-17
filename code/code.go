@@ -33,6 +33,7 @@ type Opcode byte
 
 const (
 	OpConstant Opcode = iota
+	OpAdd
 )
 
 type Definition struct {
@@ -41,7 +42,8 @@ type Definition struct {
 }
 
 var definitions = map[Opcode]*Definition{
-	OpConstant: {"OpConstant", []int{2}}, // OpConstant definiton: my name is OpConstant, and I have one singe operand, which is 2 bytes long
+	OpConstant: {"OpConstant", []int{2}}, // OpConstant definiton: push a constant (single operand, which is 2 bytes long) to the stack
+	OpAdd:      {"OpAdd", []int{}},       // OpAdd: pop the two topmost stack items, add them, and push the result (no operands)
 }
 
 func Lookup(op byte) (*Definition, error) {
@@ -108,6 +110,8 @@ func (ins Instructions) fmtInstruction(definition *Definition, operands []int) s
 	}
 
 	switch operandCount {
+	case 0:
+		return definition.Name
 	case 1:
 		return fmt.Sprintf("%s %d", definition.Name, operands[0])
 	}
