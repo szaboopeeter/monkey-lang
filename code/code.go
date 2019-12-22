@@ -42,6 +42,8 @@ const (
 	OpEqual
 	OpNotEqual
 	OpGreaterThan
+	OpMinus
+	OpBang
 	OpPop
 )
 
@@ -61,6 +63,8 @@ var definitions = map[Opcode]*Definition{
 	OpEqual:       {"OpEqual", []int{}},       // OpEqual: pop the two topmost stack items, compare them, and push the boolean result (no operands)
 	OpNotEqual:    {"OpNotEqual", []int{}},    // OpNotEqual: pop the two topmost stack items, compare them, and push the boolean result (no operands)
 	OpGreaterThan: {"OpGreaterThan", []int{}}, // OpGreaterThan: pop the two topmost stack items, compare them, and push the boolean result (no operands)
+	OpMinus:       {"OpMinus", []int{}},       // OpMinus: pop the topmost stack item, and push it's negated value back (no operands)
+	OpBang:        {"OpBang", []int{}},        // OpBang: pop the topmost stack item, and push it's negated value back (no operands)
 	OpPop:         {"OpPop", []int{}},         // OpPop: pop the topmost element off the stack
 }
 
