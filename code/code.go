@@ -33,7 +33,18 @@ type Opcode byte
 
 const (
 	OpConstant Opcode = iota
+	OpTrue
+	OpFalse
 	OpAdd
+	OpSub
+	OpMul
+	OpDiv
+	OpEqual
+	OpNotEqual
+	OpGreaterThan
+	OpMinus
+	OpBang
+	OpPop
 )
 
 type Definition struct {
@@ -42,8 +53,19 @@ type Definition struct {
 }
 
 var definitions = map[Opcode]*Definition{
-	OpConstant: {"OpConstant", []int{2}}, // OpConstant definiton: push a constant (single operand, which is 2 bytes long) to the stack
-	OpAdd:      {"OpAdd", []int{}},       // OpAdd: pop the two topmost stack items, add them, and push the result (no operands)
+	OpConstant:    {"OpConstant", []int{2}},   // OpConstant definiton: push a constant (single operand, which is 2 bytes long) to the stack
+	OpTrue:        {"OpTrue", []int{}},        // OpTrue: push a boolean object representing true value onto the stack (no operands)
+	OpFalse:       {"OpFalse", []int{}},       // OpFalse: push a boolean object representing false value onto the stack (no operands)
+	OpAdd:         {"OpAdd", []int{}},         // OpAdd: pop the two topmost stack items, add them, and push the result (no operands)
+	OpSub:         {"OpSub", []int{}},         // OpSub: pop the two topmost stack items, subtract them, and push the result (no operands)
+	OpMul:         {"OpMul", []int{}},         // OpMul: pop the two topmost stack items, multiply them, and push the result (no operands)
+	OpDiv:         {"OpDiv", []int{}},         // OpDiv: pop the two topmost stack items, divide them, and push the result (no operands)
+	OpEqual:       {"OpEqual", []int{}},       // OpEqual: pop the two topmost stack items, compare them, and push the boolean result (no operands)
+	OpNotEqual:    {"OpNotEqual", []int{}},    // OpNotEqual: pop the two topmost stack items, compare them, and push the boolean result (no operands)
+	OpGreaterThan: {"OpGreaterThan", []int{}}, // OpGreaterThan: pop the two topmost stack items, compare them, and push the boolean result (no operands)
+	OpMinus:       {"OpMinus", []int{}},       // OpMinus: pop the topmost stack item, and push it's negated value back (no operands)
+	OpBang:        {"OpBang", []int{}},        // OpBang: pop the topmost stack item, and push it's negated value back (no operands)
+	OpPop:         {"OpPop", []int{}},         // OpPop: pop the topmost element off the stack
 }
 
 func Lookup(op byte) (*Definition, error) {
