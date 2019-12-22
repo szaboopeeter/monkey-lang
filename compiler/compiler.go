@@ -129,9 +129,29 @@ func (c *Compiler) Compile(node ast.Node) error {
 			c.removeLastInstruction()
 		}
 
-		// back-patching the operand of `OpJumpNotTruthy`
-		afterConsequencePos := len(c.instructions)
-		c.changeOperand(jumpNotTruthyPos, afterConsequencePos)
+		if node.Alternative == nil {
+			// back-patching the operand of `OpJumpNotTruthy`
+			afterConsequencePos := len(c.instructions)
+			c.changeOperand(jumpNotTruthyPos, afterConsequencePos)
+		} else {
+			// Emit an `OpJump` with a bogus value
+			jumpPos := c.emit(code.OpJump, 9999)
+
+			afterConsequencePos := len(c.instructions)
+			c.changeOperand(jumpNotTruthyPos, afterConsequencePos)
+
+			err := c.Compile(node.Alternative)
+			if err != nil {
+				return err
+			}
+
+			if c.lastInstructionIsPop() {
+				c.removeLastInstruction()
+			}
+
+			afterAlternativePos := len(c.instructions)
+			c.changeOperand(jumpPos, afterAlternativePos)
+		}
 	case *ast.BlockStatement:
 		for _, s := range node.Statements {
 			err := c.Compile(s)
