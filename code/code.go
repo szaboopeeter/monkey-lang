@@ -34,6 +34,9 @@ type Opcode byte
 const (
 	OpConstant Opcode = iota
 	OpAdd
+	OpSub
+	OpMul
+	OpDiv
 	OpPop
 )
 
@@ -45,6 +48,9 @@ type Definition struct {
 var definitions = map[Opcode]*Definition{
 	OpConstant: {"OpConstant", []int{2}}, // OpConstant definiton: push a constant (single operand, which is 2 bytes long) to the stack
 	OpAdd:      {"OpAdd", []int{}},       // OpAdd: pop the two topmost stack items, add them, and push the result (no operands)
+	OpSub:      {"OpSub", []int{}},       // OpSub: pop the two topmost stack items, subtract them, and push the result (no operands)
+	OpMul:      {"OpMul", []int{}},       // OpMul: pop the two topmost stack items, multiply them, and push the result (no operands)
+	OpDiv:      {"OpDiv", []int{}},       // OpDiv: pop the two topmost stack items, divide them, and push the result (no operands)
 	OpPop:      {"OpPop", []int{}},       // OpPop: pop the topmost element off the stack
 }
 
