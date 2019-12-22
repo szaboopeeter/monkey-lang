@@ -117,8 +117,8 @@ func (c *Compiler) Compile(node ast.Node) error {
 			return err
 		}
 
-		// Emit an `OpJumpNotTruthy` with a bogus value
-		c.emit(code.OpJumpNotTruthy, 9999)
+		// Emit an `OpJumpNotTruthy` with a bogus operand
+		jumpNotTruthyPos := c.emit(code.OpJumpNotTruthy, 9999)
 
 		err = c.Compile(node.Consequence)
 		if err != nil {
@@ -128,6 +128,10 @@ func (c *Compiler) Compile(node ast.Node) error {
 		if c.lastInstructionIsPop() {
 			c.removeLastInstruction()
 		}
+
+		// back-patching the operand of `OpJumpNotTruthy`
+		afterConsequencePos := len(c.instructions)
+		c.changeOperand(jumpNotTruthyPos, afterConsequencePos)
 	case *ast.BlockStatement:
 		for _, s := range node.Statements {
 			err := c.Compile(s)
@@ -192,4 +196,17 @@ func (c *Compiler) lastInstructionIsPop() bool {
 func (c *Compiler) removeLastInstruction() {
 	c.instructions = c.instructions[:c.lastInstruction.Position]
 	c.lastInstruction = c.previousInstruction
+}
+
+func (c *Compiler) replaceInstruction(pos int, newInstruction []byte) {
+	for i := 0; i < len(newInstruction); i++ {
+		c.instructions[pos+i] = newInstruction[i]
+	}
+}
+
+func (c *Compiler) changeOperand(opPos int, operand int) {
+	op := code.Opcode(c.instructions[opPos])
+	posNewInstruction := code.Make(op, operand)
+
+	c.replaceInstruction(opPos, posNewInstruction)
 }
