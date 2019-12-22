@@ -34,6 +34,7 @@ type Opcode byte
 const (
 	OpConstant Opcode = iota
 	OpAdd
+	OpPop
 )
 
 type Definition struct {
@@ -44,6 +45,7 @@ type Definition struct {
 var definitions = map[Opcode]*Definition{
 	OpConstant: {"OpConstant", []int{2}}, // OpConstant definiton: push a constant (single operand, which is 2 bytes long) to the stack
 	OpAdd:      {"OpAdd", []int{}},       // OpAdd: pop the two topmost stack items, add them, and push the result (no operands)
+	OpPop:      {"OpPop", []int{}},       // OpPop: pop the topmost element off the stack
 }
 
 func Lookup(op byte) (*Definition, error) {
