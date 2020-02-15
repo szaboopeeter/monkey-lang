@@ -21,6 +21,9 @@ type VM struct {
 var True = &object.Boolean{Value: true}
 var False = &object.Boolean{Value: false}
 
+// Null value, constant
+var Null = &object.Null{}
+
 func New(bytecode *compiler.Bytecode) *VM {
 	return &VM{
 		instructions: bytecode.Instructions,
@@ -58,6 +61,11 @@ func (vm *VM) Run() error {
 			}
 		case code.OpFalse:
 			err := vm.push(False)
+			if err != nil {
+				return err
+			}
+		case code.OpNull:
+			err := vm.push(Null)
 			if err != nil {
 				return err
 			}
